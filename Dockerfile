@@ -1,4 +1,5 @@
-FROM public.ecr.aws/aws-cli/aws-cli:2.13.4
-CMD ["echo", "Hello ECS!"]
+FROM alpine
+RUN echo "Hello Clara!" > /hello.txt
+CMD ["cat", "/hello.txt"]
 
 
