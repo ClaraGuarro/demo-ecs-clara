@@ -28,4 +28,4 @@ aws cloudformation deploy \
     BucketNameForArtifacts=my-artifact-bucket
 ```
 
-trigger test
+trigger pipeline test
