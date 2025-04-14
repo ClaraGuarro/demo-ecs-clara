@@ -27,3 +27,5 @@ aws cloudformation deploy \
     Branch=main \
     BucketNameForArtifacts=my-artifact-bucket
 ```
+
+trigger test
