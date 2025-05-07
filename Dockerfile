@@ -7,6 +7,7 @@ RUN yum update -y && yum install -y \
     iputils \
     net-tools \
     nc \
+    bind-utils \
     && yum clean all
 
 # Imposta le variabili di ambiente
@@ -26,6 +27,8 @@ CMD ["/bin/sh", "-c", "\
         echo '❌ ERRORE: DB_HOST è vuoto!'; \
         exit 1; \
     fi; \
+    echo '🔍 Risoluzione DNS...'; \
+    host $DB_HOST; \
     if ping -c 1 $DB_HOST > /dev/null; then \
         echo '✅ Host raggiungibile'; \
     else \
@@ -42,3 +45,4 @@ CMD ["/bin/sh", "-c", "\
         cat /tmp/db_output.log; \
         exit 1; \
     fi"]
+
