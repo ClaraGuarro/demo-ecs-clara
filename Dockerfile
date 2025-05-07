@@ -7,7 +7,6 @@ RUN yum update -y && yum install -y \
     iputils \
     net-tools \
     nc \
-    bind-utils \
     && yum clean all
 
 # Imposta le variabili di ambiente
@@ -19,29 +18,19 @@ ENV DB_HOST=$DATABASE_HOST \
 # Test di connessione al database e log dettagliato
 CMD ["/bin/sh", "-c", "\
     echo 'Testing DB connection...'; \
-    echo 'Host: '$DB_HOST; \
-    echo 'User: '$DB_USER; \
-    echo 'Database: '$DB_NAME; \
-    env | grep DB_; \
-    if [ -z \"$DB_HOST\" ]; then \
-        echo '❌ ERRORE: DB_HOST è vuoto!'; \
-        exit 1; \
-    fi; \
-    echo '🔍 Risoluzione DNS...'; \
-    host $DB_HOST; \
-    if ping -c 1 $DB_HOST > /dev/null; then \
-        echo '✅ Host raggiungibile'; \
-    else \
-        echo '❌ Impossibile raggiungere il database'; \
-        exit 1; \
-    fi; \
-    echo 'Tentativo di connessione a MariaDB...'; \
-    mariadb -h $DB_HOST -u $DB_USER -p$DB_PASS -e 'SHOW DATABASES;' > /tmp/db_output.log 2>&1; \
-    if grep -q 'Database' /tmp/db_output.log; then \
-        echo '✅ Connessione riuscita!'; \
-        cat /tmp/db_output.log; \
-    else \
-        echo '❌ Connessione fallita!'; \
-        cat /tmp/db_output.log; \
+    echo '--- DEBUG ENVIRONMENT VARIABLES ---'; \
+    echo 'DATABASE_HOST='$DATABASE_HOST; \
+    echo 'DATABASE_USERNAME='$DATABASE_USERNAME; \
+    echo 'DATABASE_PASSWORD='$DATABASE_PASSWORD; \
+    echo 'DATABASE_NAME='$DATABASE_NAME; \
+    echo '--- AWS SSM GET PARAMETERS ---'; \
+    aws ssm get-parameter --name $DATABASE_HOST --region us-east-1 --with-decryption; \
+    aws ssm get-parameter --name $DATABASE_USERNAME --region us-east-1 --with-decryption; \
+    aws ssm get-parameter --name $DATABASE_PASSWORD --region us-east-1 --with-decryption; \
+    aws ssm get-parameter --name $DATABASE_NAME --region us-east-1 --with-decryption; \
+    env | grep DATABASE_; \
+    if [ -z \"$DATABASE_HOST\" ]; then \
+        echo '❌ ERRORE: DATABASE_HOST è vuoto!'; \
         exit 1; \
     fi"]
+
