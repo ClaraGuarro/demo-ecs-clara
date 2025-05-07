@@ -17,17 +17,22 @@ ENV DB_HOST=$DATABASE_HOST \
 
 # Test di connessione al database e log dettagliato
 CMD ["/bin/sh", "-c", "\
-    echo '🏷️ Testing DB connection...'; \
-    echo '🔎 Host: '$DB_HOST; \
-    echo '🔎 User: '$DB_USER; \
-    echo '🔎 Database: '$DB_NAME; \
+    echo 'Testing DB connection...'; \
+    echo 'Host: '$DB_HOST; \
+    echo 'User: '$DB_USER; \
+    echo 'Database: '$DB_NAME; \
+    env | grep DB_; \
+    if [ -z \"$DB_HOST\" ]; then \
+        echo '❌ ERRORE: DB_HOST è vuoto!'; \
+        exit 1; \
+    fi; \
     if ping -c 1 $DB_HOST > /dev/null; then \
         echo '✅ Host raggiungibile'; \
     else \
         echo '❌ Impossibile raggiungere il database'; \
         exit 1; \
     fi; \
-    echo '⚙️ Tentativo di connessione a MariaDB...'; \
+    echo 'Tentativo di connessione a MariaDB...'; \
     mariadb -h $DB_HOST -u $DB_USER -p$DB_PASS -e 'SHOW DATABASES;' > /tmp/db_output.log 2>&1; \
     if grep -q 'Database' /tmp/db_output.log; then \
         echo '✅ Connessione riuscita!'; \
@@ -37,4 +42,3 @@ CMD ["/bin/sh", "-c", "\
         cat /tmp/db_output.log; \
         exit 1; \
     fi"]
-
