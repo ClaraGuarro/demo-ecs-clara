@@ -45,4 +45,3 @@ CMD ["/bin/sh", "-c", "\
         cat /tmp/db_output.log; \
         exit 1; \
     fi"]
-
