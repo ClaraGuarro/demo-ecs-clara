@@ -30,15 +30,6 @@ CMD ["/bin/sh", "-c", "\
     echo 'DATABASE_PASSWORD='$DATABASE_PASSWORD; \
     echo 'DATABASE_NAME='$DATABASE_NAME; \
 
-    echo '--- AWS SSM GET PARAMETERS ---'; \
-    aws ssm get-parameter --name $DATABASE_HOST --region us-east-1 --with-decryption || echo 'Parameter not found'; \
-    aws ssm get-parameter --name $DATABASE_USERNAME --region us-east-1 --with-decryption || echo 'Parameter not found'; \
-    aws ssm get-parameter --name $DATABASE_PASSWORD --region us-east-1 --with-decryption || echo 'Parameter not found'; \
-    aws ssm get-parameter --name $DATABASE_NAME --region us-east-1 --with-decryption || echo 'Parameter not found'; \
-
-    echo '--- DNS RESOLUTION TEST ---'; \
-    ping -c 4 $DATABASE_HOST || echo '❌ DNS Resolution failed!'; \
-
     echo '--- PORT REACHABILITY TEST (3306) ---'; \
     nc -zv $DATABASE_HOST 3306 || echo '❌ Port 3306 not reachable!'; \
 
@@ -51,5 +42,3 @@ CMD ["/bin/sh", "-c", "\
         echo '❌ ERRORE: DATABASE_HOST è vuoto!'; \
         exit 1; \
     fi"]
-
-
