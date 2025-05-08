@@ -29,15 +29,27 @@ CMD ["/bin/sh", "-c", "\
     echo 'DATABASE_USERNAME='$DATABASE_USERNAME; \
     echo 'DATABASE_PASSWORD='$DATABASE_PASSWORD; \
     echo 'DATABASE_NAME='$DATABASE_NAME; \
+
     echo '--- AWS SSM GET PARAMETERS ---'; \
     aws ssm get-parameter --name $DATABASE_HOST --region us-east-1 --with-decryption || echo 'Parameter not found'; \
     aws ssm get-parameter --name $DATABASE_USERNAME --region us-east-1 --with-decryption || echo 'Parameter not found'; \
     aws ssm get-parameter --name $DATABASE_PASSWORD --region us-east-1 --with-decryption || echo 'Parameter not found'; \
     aws ssm get-parameter --name $DATABASE_NAME --region us-east-1 --with-decryption || echo 'Parameter not found'; \
-    echo '--- TESTING DATABASE CONNECTION ---'; \
-    mysql -h $DATABASE_HOST -u $DATABASE_USERNAME -p$DATABASE_PASSWORD -e 'SHOW DATABASES;' || echo '❌ ERRORE: Connessione al database fallita!'; \
+
+    echo '--- DNS RESOLUTION TEST ---'; \
+    ping -c 4 $DATABASE_HOST || echo '❌ DNS Resolution failed!'; \
+
+    echo '--- PORT REACHABILITY TEST (3306) ---'; \
+    nc -zv $DATABASE_HOST 3306 || echo '❌ Port 3306 not reachable!'; \
+
+    echo '--- DATABASE CONNECTION TEST ---'; \
+    mariadb -h $DATABASE_HOST -u $DATABASE_USERNAME -p$DATABASE_PASSWORD -D $DATABASE_NAME -e 'SHOW TABLES;' || echo '❌ Database connection failed!'; \
+
+    echo '--- ENVIRONMENT VARIABLES (POST-TEST) ---'; \
+    env | grep DATABASE_; \
     if [ -z \"$DATABASE_HOST\" ]; then \
         echo '❌ ERRORE: DATABASE_HOST è vuoto!'; \
         exit 1; \
     fi"]
+
 
