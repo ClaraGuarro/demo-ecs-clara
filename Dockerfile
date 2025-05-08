@@ -2,8 +2,9 @@ FROM amazonlinux:2
 
 # Update e installazione dei pacchetti necessari
 RUN yum update -y && yum install -y \
+    mariadb-server \
     mariadb \
-    mariadb-client \
+    mysql \
     iputils \
     net-tools \
     nc \
@@ -34,7 +35,7 @@ CMD ["/bin/sh", "-c", "\
     nc -zv $DATABASE_HOST 3306 || echo '❌ Port 3306 not reachable!'; \
 
     echo '--- DATABASE CONNECTION TEST ---'; \
-    mariadb -h $DATABASE_HOST -u $DATABASE_USERNAME -p$DATABASE_PASSWORD -D $DATABASE_NAME -e 'SHOW TABLES;' || echo '❌ Database connection failed!'; \
+    mysql -h $DATABASE_HOST -u $DATABASE_USERNAME -p$DATABASE_PASSWORD -D $DATABASE_NAME -e 'SHOW TABLES;' || echo '❌ Database connection failed!'; \
 
     echo '--- ENVIRONMENT VARIABLES (POST-TEST) ---'; \
     env | grep DATABASE_; \
