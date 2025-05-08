@@ -34,8 +34,10 @@ CMD ["/bin/sh", "-c", "\
     aws ssm get-parameter --name $DATABASE_USERNAME --region us-east-1 --with-decryption || echo 'Parameter not found'; \
     aws ssm get-parameter --name $DATABASE_PASSWORD --region us-east-1 --with-decryption || echo 'Parameter not found'; \
     aws ssm get-parameter --name $DATABASE_NAME --region us-east-1 --with-decryption || echo 'Parameter not found'; \
-    env | grep DATABASE_; \
+    echo '--- TESTING DATABASE CONNECTION ---'; \
+    mysql -h $DATABASE_HOST -u $DATABASE_USERNAME -p$DATABASE_PASSWORD -e 'SHOW DATABASES;' || echo '❌ ERRORE: Connessione al database fallita!'; \
     if [ -z \"$DATABASE_HOST\" ]; then \
         echo '❌ ERRORE: DATABASE_HOST è vuoto!'; \
         exit 1; \
     fi"]
+
