@@ -1,5 +1,5 @@
 
-FROM public.ecr.aws/amazonlinux/amazonlinux:2
+FROM 
 
 RUN yum -y update && \
     yum -y install coreutils procps-ng && \
