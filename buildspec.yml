@@ -1,20 +1,38 @@
 version: 0.2
 
 phases:
+  install:
+    commands:
+      - echo "Installing unzip..."
+      - |
+        if command -v apt-get >/dev/null 2>&1; then
+          apt-get update -y && apt-get install -y unzip
+        elif command -v yum >/dev/null 2>&1; then
+          yum install -y unzip
+        elif command -v dnf >/dev/null 2>&1; then
+          dnf install -y unzip
+        else
+          echo "No supported package manager found" && exit 1
+        fi
+      - echo "Installing AWS CLI v2..."
+      - curl -sSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o "awscliv2.zip"
+      - unzip -q awscliv2.zip
+      - ./aws/install -i /usr/local/aws -b /usr/local/bin
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $APP_IMAGE
+      - echo "Logging in to Amazon ECR..."
+      - aws --version
+      # ricava il registry dall'URI completo del repo passato dal template come APP_IMAGE
+      - REGISTRY=$(echo "$APP_IMAGE" | cut -d'/' -f1)
+      - aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$REGISTRY"
   build:
     commands:
-      - echo Build started on `date`
-      - echo Building the Docker image...
-      - docker build -t $APP_IMAGE:latest .
-      - docker tag $APP_IMAGE:latest $APP_IMAGE:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - echo "Building image..."
+      - docker build -t "$APP_IMAGE:latest" .
+      - docker tag "$APP_IMAGE:latest" "$APP_IMAGE:$CODEBUILD_RESOLVED_SOURCE_VERSION"
   post_build:
     commands:
-      - echo Build completed on `date`
-      - echo Pushing the Docker image...
-      - docker push $APP_IMAGE:latest
-      - docker push $APP_IMAGE:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - echo "Pushing image..."
+      - docker push "$APP_IMAGE:latest"
+      - docker push "$APP_IMAGE:$CODEBUILD_RESOLVED_SOURCE_VERSION"
 
