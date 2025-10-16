@@ -1,37 +1,28 @@
 version: 0.2
 
-env:
-  variables:
-    IMAGE_TAG: $CODEBUILD_RESOLVED_SOURCE_VERSION
-
 phases:
   pre_build:
     commands:
-      - |
-        set -e
-        printf 'Region=%s\n' "$AWS_DEFAULT_REGION"
-        REGISTRY="$(echo "$APP_IMAGE" | cut -d'/' -f1)"
-        echo "Logging into ECR registry $REGISTRY"
-        aws ecr get-login-password --region "$AWS_DEFAULT_REGION" \
-          | docker login --username AWS --password-stdin "$REGISTRY"
-        echo "Image URI base: $APP_IMAGE"
-        echo "Image Tag: $IMAGE_TAG"
+      - set -e
+      - IMAGE_TAG=$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - printf 'Region=%s\n' "$AWS_DEFAULT_REGION"
+      - REGISTRY="$(echo "$APP_IMAGE" | cut -d'/' -f1)"
+      - echo "Logging into ECR registry $REGISTRY"
+      - aws ecr get-login-password --region "$AWS_DEFAULT_REGION" | docker login --username AWS --password-stdin "$REGISTRY"
+      - echo "Image URI base: $APP_IMAGE"
+      - echo "Image Tag: $IMAGE_TAG"
 
   build:
     commands:
-      - |
-        set -e
-        echo "Building Docker image..."
-        docker build -t "$APP_IMAGE:$IMAGE_TAG" -t "$APP_IMAGE:latest" .
+      - echo "Building Docker image..."
+      - docker build -t "$APP_IMAGE:$IMAGE_TAG" -t "$APP_IMAGE:latest" .
 
   post_build:
     commands:
-      - |
-        set -e
-        echo "Pushing Docker image..."
-        docker push "$APP_IMAGE:$IMAGE_TAG"
-        docker push "$APP_IMAGE:latest"
-        echo "$APP_IMAGE:$IMAGE_TAG" > image_uri.txt
+      - echo "Pushing Docker image..."
+      - docker push "$APP_IMAGE:$IMAGE_TAG"
+      - docker push "$APP_IMAGE:latest"
+      - echo "$APP_IMAGE:$IMAGE_TAG" > image_uri.txt
 
 artifacts:
   files:
