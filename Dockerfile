@@ -1,29 +1,37 @@
-FROM public.ecr.aws/amazonlinux/amazonlinux:2
+# Dockerfile
+FROM node:20-alpine
 
-RUN yum -y update && \
-    yum -y install python3 && \
-    yum -y clean all && \
-    rm -rf /var/cache/yum
+# Crea una mini app senza dipendenze esterne
+WORKDIR /app
+RUN cat > server.js <<'EOF'
+const http = require('http');
 
-RUN mkdir -p /srv && cat > /srv/server.py << 'PY'
-from http.server import BaseHTTPRequestHandler, HTTPServer
+const PORT = process.env.PORT || 80;
 
-class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == "/clara/path/test":
-            body = "Clara path test OK!\n"
-            self.send_response(200)
-            self.send_header("Content-Type", "text/plain")
-            self.end_headers()
-            self.wfile.write(body.encode())
-        else:
-            self.send_response(404)
-            self.end_headers()
+const server = http.createServer((req, res) => {
+  // Normalizza eventuale trailing slash
+  const url = req.url.replace(/\/+$/, '') || '/';
 
-    def log_message(self, *args): pass
+  if (req.method === 'GET' && url === '/clara/test/path') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    return res.end('ok: clara/test/path');
+  }
 
-HTTPServer(("", 3000), Handler).serve_forever()
-PY
+  // Health check semplice
+  if (req.method === 'GET' && url === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    return res.end('healthy');
+  }
+
+  res.writeHead(404, { 'Content-Type': 'text/plain' });
+  res.end('not found');
+});
+
+server.listen(PORT, () => {
+  console.log(`listening on ${PORT}`);
+});
+EOF
 
 EXPOSE 80
-CMD ["python3", "/srv/server.py"]
+CMD ["node", "server.js"]
+
