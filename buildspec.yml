@@ -23,7 +23,10 @@ phases:
       - docker push $APP_IMAGE:$IMAGE_TAG
       - docker push $APP_IMAGE:latest
       - echo $APP_IMAGE:$IMAGE_TAG > image_uri.txt
+      - echo "Writing image definitions file for ${MICROSERVICE_NAME}..."
+      - printf '[{"name":"%s","imageUri":"%s"}]' "$MICROSERVICE_NAME" "$ECR_IMAGE_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION" > "img-def-${MICROSERVICE_NAME}.json"
+      - cat "img-def-${MICROSERVICE_NAME}.json"
 
 artifacts:
   files:
-    - image_uri.txt
+    - img-def-*.json
